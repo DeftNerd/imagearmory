@@ -74,7 +74,7 @@ func Resourcehandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if strings.Contains(fname, "..") || fname[:1] == "/" {
-		http.Error(w, "Nice try. Now fuck off", http.StatusForbidden)
+		http.Error(w, "Nice try.", http.StatusForbidden)
 		return
 	}
 	fname = UIPATH + fname
@@ -93,5 +93,5 @@ func main() {
 	http.HandleFunc(HTTPGETPATH, Gethandler)
 	http.HandleFunc(RESOURCEPATH, Resourcehandler)
 	http.HandleFunc(MAINPATH, Mainhandler)
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(":80", nil)
 }
