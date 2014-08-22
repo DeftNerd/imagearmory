@@ -18,7 +18,7 @@ function pasteIt(){
     if(f){
         readSingleFile(ulbox, function(data){
             if(!isImage(data)){
-                alert("Invalid file selected, use jpg,png or gif.");
+                alert("Invalid file selected, use jpg, png or gif.");
             }
             var enccontent = getContentEncrypted(pass, data);
             uploadContent(enccontent, pass);
@@ -128,7 +128,7 @@ function initPage(){
 	$("pre").hide();
     }
     if (!(window.File && window.FileReader && window.FileList && window.Blob)) {
-        alert("Your browser doesn't support File API's. Upgrade your browser yo! Image upload won't work.");
+        alert("Your browser doesn't support File API's. Image upload won't work. I suggest upgrading to Google Chrome.");
     }
 }
 
