@@ -88,14 +88,11 @@ textarea {
 <div id="content">
 
 <div id="download" style="float:right"><a href="javascript:downloadPaste();">View RAW Version</a></div>
-<div id="newpaste" style="float:left"><a href="/">Create a new paste</a></div>
+<div id="newpaste" style="float:left"><a href="/">Upload new image</a></div>
 <br />
 <div id="paster" style="display: none;">
-<textarea name="r" id="r" rows="50" cols="20" placeholder="Enter text here"></textarea>
+Upload an image: <input type="file" id="filef" name="filef">
 <input type="button" id="savebtn" value="Submit" onclick="pasteIt()"/>
-<div style="float:right">
-    or upload an image <input type="file" id="filef" name="filef">
-</div>
 </div>
 <pre style="display:none;overflow-y:scroll;" class="prettyprint linenums"><code id="paste"></code></pre>
 <noscript><span id="youneedjs" style="text-align:center;width:100%;display:block;padding-top:10%;font-size:30pt;color:red">You need javascript!!1!</span></noscript>
