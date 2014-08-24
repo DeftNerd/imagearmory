@@ -61,7 +61,7 @@ function showBin(c) {
         var img = "data:image/"+t+";base64," + btoa(c);
         $(".prettyprint").append('<img id="pasteImg"></img>');
         $("#pasteImg").attr('src',img);
-        $("img").show();
+        $("p,img").show();
         //return;
     } else {
         $(".prettyprint").append('<code id="paste"></code>');
