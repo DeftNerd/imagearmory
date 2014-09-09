@@ -17,3 +17,12 @@ The VPS that I run this on only has a 30gb HD, so I'm going to have the server w
 on a SaaS host like Elastic Beanstalk or AppEngine. 
 
 In order to do that, I need to quit using auto-incrementing ID numbers for the files and use a file hash of some kind. If I used auto-incrementing numbers, then having multiple frontends would lead to different servers getting out of sync about the current file number 
+
+TODOs
+=====
+
+- Prevent double-round trip for the files (render files directly on client from S3)
+
+- Re-introduce local storage options (via adapter/cli switch)
+
+- UI loading indicators

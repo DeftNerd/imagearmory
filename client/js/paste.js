@@ -14,7 +14,7 @@ function decryptContent(c,pw) {
 function pasteIt(){
     var pass = getRandomPassword();
     var ulbox = document.getElementById('filef');
-    var f = ulbox.files[0]; 
+    var f = ulbox.files[0];
     if(f){
         readSingleFile(ulbox, function(data){
             if(!isImage(data)){
@@ -47,7 +47,7 @@ function findBaseURL(){
 function getBin(id,password) {
     $.get("/get/" + id, function(data){
         data = decryptContent(data,password).toString(CryptoJS.enc.Utf8);
-        showBin(data); 
+        showBin(data);
     });
 }
 
@@ -77,9 +77,9 @@ function downloadPaste() {
 }
 
 function readSingleFile(uploadbox, cb) {
-    var f = uploadbox.files[0]; 
+    var f = uploadbox.files[0];
     var r = new FileReader();
-    r.onload = function(e) { 
+    r.onload = function(e) {
         var contents = e.target.result;
         cb(contents);
     }
@@ -94,7 +94,7 @@ function findImgType(data){
     var imageHeaders = ["89504e470d0a1a0a", "png",
                         "ffd8", "jpg",
                         "474946383761", "gif",
-                        "474946383961", "gif"]; 
+                        "474946383961", "gif"];
 
     for(var i=0; i < imageHeaders.length; i+=2){
         var binHeader = hex2bin(imageHeaders[i]);
@@ -118,7 +118,7 @@ function initPage(){
     var url=window.location+'';
     if(url.indexOf("#") != -1){
         var d = url.split("#")[1].split(":");
-        if(d[0]>=0){
+        if(d.length == 2 && d[0].length ==36){
             getBin(d[0],d[1]);
         }
     }else{
