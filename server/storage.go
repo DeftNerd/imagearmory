@@ -1,8 +1,8 @@
 package server
 
 import (
-    "github.com/mitchellh/goamz/aws"
-    "github.com/mitchellh/goamz/s3"
+    "github.com/crowdmob/goamz/aws"
+    "github.com/crowdmob/goamz/s3"
     "github.com/codegangsta/cli"
     "log"
 )

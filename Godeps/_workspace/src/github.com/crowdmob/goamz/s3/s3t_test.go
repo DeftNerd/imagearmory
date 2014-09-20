@@ -1,10 +1,10 @@
 package s3_test
 
 import (
-	"github.com/mitchellh/goamz/aws"
-	"github.com/mitchellh/goamz/s3"
-	"github.com/mitchellh/goamz/s3/s3test"
-	. "github.com/motain/gocheck"
+	"github.com/crowdmob/goamz/aws"
+	"github.com/crowdmob/goamz/s3"
+	"github.com/crowdmob/goamz/s3/s3test"
+	"gopkg.in/check.v1"
 )
 
 type LocalServer struct {
@@ -14,10 +14,10 @@ type LocalServer struct {
 	config *s3test.Config
 }
 
-func (s *LocalServer) SetUp(c *C) {
+func (s *LocalServer) SetUp(c *check.C) {
 	srv, err := s3test.NewServer(s.config)
-	c.Assert(err, IsNil)
-	c.Assert(srv, NotNil)
+	c.Assert(err, check.IsNil)
+	c.Assert(srv, check.NotNil)
 
 	s.srv = srv
 	s.region = aws.Region{
@@ -39,8 +39,8 @@ type LocalServerSuite struct {
 
 var (
 	// run tests twice, once in us-east-1 mode, once not.
-	_ = Suite(&LocalServerSuite{})
-	_ = Suite(&LocalServerSuite{
+	_ = check.Suite(&LocalServerSuite{})
+	_ = check.Suite(&LocalServerSuite{
 		srv: LocalServer{
 			config: &s3test.Config{
 				Send409Conflict: true,
@@ -49,7 +49,7 @@ var (
 	})
 )
 
-func (s *LocalServerSuite) SetUpSuite(c *C) {
+func (s *LocalServerSuite) SetUpSuite(c *check.C) {
 	s.srv.SetUp(c)
 	s.clientTests.s3 = s3.New(s.srv.auth, s.srv.region)
 
@@ -58,22 +58,22 @@ func (s *LocalServerSuite) SetUpSuite(c *C) {
 	s.clientTests.Cleanup()
 }
 
-func (s *LocalServerSuite) TearDownTest(c *C) {
+func (s *LocalServerSuite) TearDownTest(c *check.C) {
 	s.clientTests.Cleanup()
 }
 
-func (s *LocalServerSuite) TestBasicFunctionality(c *C) {
+func (s *LocalServerSuite) TestBasicFunctionality(c *check.C) {
 	s.clientTests.TestBasicFunctionality(c)
 }
 
-func (s *LocalServerSuite) TestGetNotFound(c *C) {
+func (s *LocalServerSuite) TestGetNotFound(c *check.C) {
 	s.clientTests.TestGetNotFound(c)
 }
 
-func (s *LocalServerSuite) TestBucketList(c *C) {
+func (s *LocalServerSuite) TestBucketList(c *check.C) {
 	s.clientTests.TestBucketList(c)
 }
 
-func (s *LocalServerSuite) TestDoublePutBucket(c *C) {
+func (s *LocalServerSuite) TestDoublePutBucket(c *check.C) {
 	s.clientTests.TestDoublePutBucket(c)
 }

@@ -1,5 +1,13 @@
 package s3_test
 
+var PutCopyResultDump = `
+<?xml version="1.0" encoding="UTF-8"?>
+<CopyObjectResult>
+  <LastModified>2009-10-28T22:32:00</LastModified>
+  <ETag>&quot;9b2cf535f27731c974343645a3985328&quot;</ETag>
+</CopyObjectResult>
+`
+
 var GetObjectErrorDump = `
 <?xml version="1.0" encoding="UTF-8"?>
 <Error><Code>NoSuchBucket</Code><Message>The specified bucket does not exist</Message>
@@ -197,45 +205,32 @@ var InternalErrorDump = `
 </Error>
 `
 
-var GetKeyHeaderDump = map[string]string{
-	"x-amz-id-2":       "ef8yU9AS1ed4OpIszj7UDNEHGran",
-	"x-amz-request-id": "318BC8BC143432E5",
-	"x-amz-version-id": "3HL4kqtJlcpXroDTDmjVBH40Nrjfkd",
-	"Date":             "Wed, 28 Oct 2009 22:32:00 GMT",
-	"Last-Modified":    "Sun, 1 Jan 2006 12:00:00 GMT",
-	"ETag":             "fba9dede5f27731c9771645a39863328",
-	"Content-Length":   "434234",
-	"Content-Type":     "text/plain",
-}
-
-var GetListBucketsDump = `
+var GetServiceDump = `
 <?xml version="1.0" encoding="UTF-8"?>
-<ListAllMyBucketsResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+<ListAllMyBucketsResult xmlns="http://s3.amazonaws.com/doc/2006-03-01">
   <Owner>
-    <ID>bb5c0f63b0b25f2d0</ID>
-    <DisplayName>joe</DisplayName>
+    <ID>bcaf1ffd86f461ca5fb16fd081034f</ID>
+    <DisplayName>webfile</DisplayName>
   </Owner>
   <Buckets>
     <Bucket>
-      <Name>bucket1</Name>
-      <CreationDate>2012-01-01T02:03:04.000Z</CreationDate>
+      <Name>quotes</Name>
+      <CreationDate>2006-02-03T16:45:09.000Z</CreationDate>
     </Bucket>
     <Bucket>
-      <Name>bucket2</Name>
-      <CreationDate>2014-01-11T02:03:04.000Z</CreationDate>
+      <Name>samples</Name>
+      <CreationDate>2006-02-03T16:41:58.000Z</CreationDate>
     </Bucket>
   </Buckets>
 </ListAllMyBucketsResult>
 `
 
-var MultiDelDump = `
+var GetLocationUsStandard = `
 <?xml version="1.0" encoding="UTF-8"?>
-<DeleteResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
-  <Deleted>
-    <Key>a.go</Key>
-  </Deleted>
-  <Deleted>
-    <Key>b.go</Key>
-  </Deleted>
-</DeleteResult>
+<LocationConstraint xmlns="http://s3.amazonaws.com/doc/2006-03-01/"/>
+`
+
+var GetLocationUsWest1 = `
+<?xml version="1.0" encoding="UTF-8"?>
+<LocationConstraint xmlns="http://s3.amazonaws.com/doc/2006-03-01/">us-west-1</LocationConstraint>
 `

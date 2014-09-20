@@ -4,16 +4,15 @@ import (
 	"bytes"
 	"crypto/md5"
 	"fmt"
+	"github.com/crowdmob/goamz/aws"
+	"github.com/crowdmob/goamz/s3"
+	"github.com/crowdmob/goamz/testutil"
+	"gopkg.in/check.v1"
 	"io/ioutil"
-	"net/http"
-	"strings"
-
-	"github.com/mitchellh/goamz/aws"
-	"github.com/mitchellh/goamz/s3"
-	"github.com/mitchellh/goamz/testutil"
-	. "github.com/motain/gocheck"
 	"net"
+	"net/http"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -22,7 +21,7 @@ type AmazonServer struct {
 	auth aws.Auth
 }
 
-func (s *AmazonServer) SetUp(c *C) {
+func (s *AmazonServer) SetUp(c *check.C) {
 	auth, err := aws.EnvAuth()
 	if err != nil {
 		c.Fatal(err.Error())
@@ -30,9 +29,9 @@ func (s *AmazonServer) SetUp(c *C) {
 	s.auth = auth
 }
 
-var _ = Suite(&AmazonClientSuite{Region: aws.USEast})
-var _ = Suite(&AmazonClientSuite{Region: aws.EUWest})
-var _ = Suite(&AmazonDomainClientSuite{Region: aws.USEast})
+var _ = check.Suite(&AmazonClientSuite{Region: aws.USEast})
+var _ = check.Suite(&AmazonClientSuite{Region: aws.EUWest})
+var _ = check.Suite(&AmazonDomainClientSuite{Region: aws.USEast})
 
 // AmazonClientSuite tests the client against a live S3 server.
 type AmazonClientSuite struct {
@@ -41,7 +40,7 @@ type AmazonClientSuite struct {
 	ClientTests
 }
 
-func (s *AmazonClientSuite) SetUpSuite(c *C) {
+func (s *AmazonClientSuite) SetUpSuite(c *check.C) {
 	if !testutil.Amazon {
 		c.Skip("live tests against AWS disabled (no -amazon)")
 	}
@@ -51,7 +50,7 @@ func (s *AmazonClientSuite) SetUpSuite(c *C) {
 	s.ClientTests.Cleanup()
 }
 
-func (s *AmazonClientSuite) TearDownTest(c *C) {
+func (s *AmazonClientSuite) TearDownTest(c *check.C) {
 	s.ClientTests.Cleanup()
 }
 
@@ -64,7 +63,7 @@ type AmazonDomainClientSuite struct {
 	ClientTests
 }
 
-func (s *AmazonDomainClientSuite) SetUpSuite(c *C) {
+func (s *AmazonDomainClientSuite) SetUpSuite(c *check.C) {
 	if !testutil.Amazon {
 		c.Skip("live tests against AWS disabled (no -amazon)")
 	}
@@ -75,7 +74,7 @@ func (s *AmazonDomainClientSuite) SetUpSuite(c *C) {
 	s.ClientTests.Cleanup()
 }
 
-func (s *AmazonDomainClientSuite) TearDownTest(c *C) {
+func (s *AmazonDomainClientSuite) TearDownTest(c *check.C) {
 	s.ClientTests.Cleanup()
 }
 
@@ -164,102 +163,77 @@ func get(url string) ([]byte, error) {
 	panic("unreachable")
 }
 
-func (s *ClientTests) TestBasicFunctionality(c *C) {
+func (s *ClientTests) TestBasicFunctionality(c *check.C) {
 	b := testBucket(s.s3)
 	err := b.PutBucket(s3.PublicRead)
-	c.Assert(err, IsNil)
+	c.Assert(err, check.IsNil)
 
-	err = b.Put("name", []byte("yo!"), "text/plain", s3.PublicRead)
-	c.Assert(err, IsNil)
+	err = b.Put("name", []byte("yo!"), "text/plain", s3.PublicRead, s3.Options{})
+	c.Assert(err, check.IsNil)
 	defer b.Del("name")
 
 	data, err := b.Get("name")
-	c.Assert(err, IsNil)
-	c.Assert(string(data), Equals, "yo!")
+	c.Assert(err, check.IsNil)
+	c.Assert(string(data), check.Equals, "yo!")
 
 	data, err = get(b.URL("name"))
-	c.Assert(err, IsNil)
-	c.Assert(string(data), Equals, "yo!")
+	c.Assert(err, check.IsNil)
+	c.Assert(string(data), check.Equals, "yo!")
 
 	buf := bytes.NewBufferString("hey!")
-	err = b.PutReader("name2", buf, int64(buf.Len()), "text/plain", s3.Private)
-	c.Assert(err, IsNil)
+	err = b.PutReader("name2", buf, int64(buf.Len()), "text/plain", s3.Private, s3.Options{})
+	c.Assert(err, check.IsNil)
 	defer b.Del("name2")
 
 	rc, err := b.GetReader("name2")
-	c.Assert(err, IsNil)
+	c.Assert(err, check.IsNil)
 	data, err = ioutil.ReadAll(rc)
-	c.Check(err, IsNil)
-	c.Check(string(data), Equals, "hey!")
+	c.Check(err, check.IsNil)
+	c.Check(string(data), check.Equals, "hey!")
 	rc.Close()
 
 	data, err = get(b.SignedURL("name2", time.Now().Add(time.Hour)))
-	c.Assert(err, IsNil)
-	c.Assert(string(data), Equals, "hey!")
+	c.Assert(err, check.IsNil)
+	c.Assert(string(data), check.Equals, "hey!")
 
 	if !s.authIsBroken {
 		data, err = get(b.SignedURL("name2", time.Now().Add(-time.Hour)))
-		c.Assert(err, IsNil)
-		c.Assert(string(data), Matches, "(?s).*AccessDenied.*")
+		c.Assert(err, check.IsNil)
+		c.Assert(string(data), check.Matches, "(?s).*AccessDenied.*")
 	}
 
 	err = b.DelBucket()
-	c.Assert(err, NotNil)
+	c.Assert(err, check.NotNil)
 
 	s3err, ok := err.(*s3.Error)
-	c.Assert(ok, Equals, true)
-	c.Assert(s3err.Code, Equals, "BucketNotEmpty")
-	c.Assert(s3err.BucketName, Equals, b.Name)
-	c.Assert(s3err.Message, Equals, "The bucket you tried to delete is not empty")
+	c.Assert(ok, check.Equals, true)
+	c.Assert(s3err.Code, check.Equals, "BucketNotEmpty")
+	c.Assert(s3err.BucketName, check.Equals, b.Name)
+	c.Assert(s3err.Message, check.Equals, "The bucket you tried to delete is not empty")
 
 	err = b.Del("name")
-	c.Assert(err, IsNil)
+	c.Assert(err, check.IsNil)
 	err = b.Del("name2")
-	c.Assert(err, IsNil)
+	c.Assert(err, check.IsNil)
 
 	err = b.DelBucket()
-	c.Assert(err, IsNil)
+	c.Assert(err, check.IsNil)
 }
 
-func (s *ClientTests) TestCopy(c *C) {
-	b := testBucket(s.s3)
-	err := b.PutBucket(s3.PublicRead)
-
-	err = b.Put("name+1", []byte("yo!"), "text/plain", s3.PublicRead)
-	c.Assert(err, IsNil)
-	defer b.Del("name+1")
-
-	err = b.Copy("name+1", "name+2", s3.PublicRead)
-	c.Assert(err, IsNil)
-	defer b.Del("name+2")
-
-	data, err := b.Get("name+2")
-	c.Assert(err, IsNil)
-	c.Assert(string(data), Equals, "yo!")
-
-	err = b.Del("name+1")
-	c.Assert(err, IsNil)
-	err = b.Del("name+2")
-	c.Assert(err, IsNil)
-
-	err = b.DelBucket()
-	c.Assert(err, IsNil)
-}
-
-func (s *ClientTests) TestGetNotFound(c *C) {
+func (s *ClientTests) TestGetNotFound(c *check.C) {
 	b := s.s3.Bucket("goamz-" + s.s3.Auth.AccessKey)
 	data, err := b.Get("non-existent")
 
 	s3err, _ := err.(*s3.Error)
-	c.Assert(s3err, NotNil)
-	c.Assert(s3err.StatusCode, Equals, 404)
-	c.Assert(s3err.Code, Equals, "NoSuchBucket")
-	c.Assert(s3err.Message, Equals, "The specified bucket does not exist")
-	c.Assert(data, IsNil)
+	c.Assert(s3err, check.NotNil)
+	c.Assert(s3err.StatusCode, check.Equals, 404)
+	c.Assert(s3err.Code, check.Equals, "NoSuchBucket")
+	c.Assert(s3err.Message, check.Equals, "The specified bucket does not exist")
+	c.Assert(data, check.IsNil)
 }
 
 // Communicate with all endpoints to see if they are alive.
-func (s *ClientTests) TestRegions(c *C) {
+func (s *ClientTests) TestRegions(c *check.C) {
 	errs := make(chan error, len(aws.Regions))
 	for _, region := range aws.Regions {
 		go func(r aws.Region) {
@@ -274,7 +248,7 @@ func (s *ClientTests) TestRegions(c *C) {
 		if err != nil {
 			s3_err, ok := err.(*s3.Error)
 			if ok {
-				c.Check(s3_err.Code, Matches, "NoSuchBucket")
+				c.Check(s3_err.Code, check.Matches, "NoSuchBucket")
 			} else if _, ok = err.(*net.DNSError); ok {
 				// Okay as well.
 			} else {
@@ -376,28 +350,28 @@ var listTests = []s3.ListResp{
 	},
 }
 
-func (s *ClientTests) TestDoublePutBucket(c *C) {
+func (s *ClientTests) TestDoublePutBucket(c *check.C) {
 	b := testBucket(s.s3)
 	err := b.PutBucket(s3.PublicRead)
-	c.Assert(err, IsNil)
+	c.Assert(err, check.IsNil)
 
 	err = b.PutBucket(s3.PublicRead)
 	if err != nil {
-		c.Assert(err, FitsTypeOf, new(s3.Error))
-		c.Assert(err.(*s3.Error).Code, Equals, "BucketAlreadyOwnedByYou")
+		c.Assert(err, check.FitsTypeOf, new(s3.Error))
+		c.Assert(err.(*s3.Error).Code, check.Equals, "BucketAlreadyOwnedByYou")
 	}
 }
 
-func (s *ClientTests) TestBucketList(c *C) {
+func (s *ClientTests) TestBucketList(c *check.C) {
 	b := testBucket(s.s3)
 	err := b.PutBucket(s3.Private)
-	c.Assert(err, IsNil)
+	c.Assert(err, check.IsNil)
 
 	objData := make(map[string][]byte)
 	for i, path := range objectNames {
 		data := []byte(strings.Repeat("a", i))
-		err := b.Put(path, data, "text/plain", s3.Private)
-		c.Assert(err, IsNil)
+		err := b.Put(path, data, "text/plain", s3.Private, s3.Options{})
+		c.Assert(err, check.IsNil)
 		defer b.Del(path)
 		objData[path] = data
 	}
@@ -405,11 +379,11 @@ func (s *ClientTests) TestBucketList(c *C) {
 	for i, t := range listTests {
 		c.Logf("test %d", i)
 		resp, err := b.List(t.Prefix, t.Delimiter, t.Marker, t.MaxKeys)
-		c.Assert(err, IsNil)
-		c.Check(resp.Name, Equals, b.Name)
-		c.Check(resp.Delimiter, Equals, t.Delimiter)
-		c.Check(resp.IsTruncated, Equals, t.IsTruncated)
-		c.Check(resp.CommonPrefixes, DeepEquals, t.CommonPrefixes)
+		c.Assert(err, check.IsNil)
+		c.Check(resp.Name, check.Equals, b.Name)
+		c.Check(resp.Delimiter, check.Equals, t.Delimiter)
+		c.Check(resp.IsTruncated, check.Equals, t.IsTruncated)
+		c.Check(resp.CommonPrefixes, check.DeepEquals, t.CommonPrefixes)
 		checkContents(c, resp.Contents, objData, t.Contents)
 	}
 }
@@ -420,71 +394,71 @@ func etag(data []byte) string {
 	return fmt.Sprintf(`"%x"`, sum.Sum(nil))
 }
 
-func checkContents(c *C, contents []s3.Key, data map[string][]byte, expected []s3.Key) {
-	c.Assert(contents, HasLen, len(expected))
+func checkContents(c *check.C, contents []s3.Key, data map[string][]byte, expected []s3.Key) {
+	c.Assert(contents, check.HasLen, len(expected))
 	for i, k := range contents {
-		c.Check(k.Key, Equals, expected[i].Key)
+		c.Check(k.Key, check.Equals, expected[i].Key)
 		// TODO mtime
-		c.Check(k.Size, Equals, int64(len(data[k.Key])))
-		c.Check(k.ETag, Equals, etag(data[k.Key]))
+		c.Check(k.Size, check.Equals, int64(len(data[k.Key])))
+		c.Check(k.ETag, check.Equals, etag(data[k.Key]))
 	}
 }
 
-func (s *ClientTests) TestMultiInitPutList(c *C) {
+func (s *ClientTests) TestMultiInitPutList(c *check.C) {
 	b := testBucket(s.s3)
 	err := b.PutBucket(s3.Private)
-	c.Assert(err, IsNil)
+	c.Assert(err, check.IsNil)
 
-	multi, err := b.InitMulti("multi", "text/plain", s3.Private)
-	c.Assert(err, IsNil)
-	c.Assert(multi.UploadId, Matches, ".+")
+	multi, err := b.InitMulti("multi", "text/plain", s3.Private, s3.Options{})
+	c.Assert(err, check.IsNil)
+	c.Assert(multi.UploadId, check.Matches, ".+")
 	defer multi.Abort()
 
 	var sent []s3.Part
 
 	for i := 0; i < 5; i++ {
 		p, err := multi.PutPart(i+1, strings.NewReader(fmt.Sprintf("<part %d>", i+1)))
-		c.Assert(err, IsNil)
-		c.Assert(p.N, Equals, i+1)
-		c.Assert(p.Size, Equals, int64(8))
-		c.Assert(p.ETag, Matches, ".+")
+		c.Assert(err, check.IsNil)
+		c.Assert(p.N, check.Equals, i+1)
+		c.Assert(p.Size, check.Equals, int64(8))
+		c.Assert(p.ETag, check.Matches, ".+")
 		sent = append(sent, p)
 	}
 
 	s3.SetListPartsMax(2)
 
 	parts, err := multi.ListParts()
-	c.Assert(err, IsNil)
-	c.Assert(parts, HasLen, len(sent))
+	c.Assert(err, check.IsNil)
+	c.Assert(parts, check.HasLen, len(sent))
 	for i := range parts {
-		c.Assert(parts[i].N, Equals, sent[i].N)
-		c.Assert(parts[i].Size, Equals, sent[i].Size)
-		c.Assert(parts[i].ETag, Equals, sent[i].ETag)
+		c.Assert(parts[i].N, check.Equals, sent[i].N)
+		c.Assert(parts[i].Size, check.Equals, sent[i].Size)
+		c.Assert(parts[i].ETag, check.Equals, sent[i].ETag)
 	}
 
 	err = multi.Complete(parts)
 	s3err, failed := err.(*s3.Error)
-	c.Assert(failed, Equals, true)
-	c.Assert(s3err.Code, Equals, "EntityTooSmall")
+	c.Assert(failed, check.Equals, true)
+	c.Assert(s3err.Code, check.Equals, "EntityTooSmall")
 
 	err = multi.Abort()
-	c.Assert(err, IsNil)
+	c.Assert(err, check.IsNil)
 	_, err = multi.ListParts()
 	s3err, ok := err.(*s3.Error)
-	c.Assert(ok, Equals, true)
-	c.Assert(s3err.Code, Equals, "NoSuchUpload")
+	c.Assert(ok, check.Equals, true)
+	c.Assert(s3err.Code, check.Equals, "NoSuchUpload")
 }
 
 // This may take a minute or more due to the minimum size accepted S3
 // on multipart upload parts.
-func (s *ClientTests) TestMultiComplete(c *C) {
+func (s *ClientTests) TestMultiComplete(c *check.C) {
 	b := testBucket(s.s3)
 	err := b.PutBucket(s3.Private)
-	c.Assert(err, IsNil)
+	c.Assert(err, check.IsNil)
 
-	multi, err := b.InitMulti("multi", "text/plain", s3.Private)
-	c.Assert(err, IsNil)
-	c.Assert(multi.UploadId, Matches, ".+")
+	multi, err := b.InitMulti("multi", "text/plain", s3.Private, s3.Options{})
+	c.Assert(err, check.IsNil)
+	c.Assert(multi.UploadId, check.Matches, ".+")
 	defer multi.Abort()
 
 	// Minimum size S3 accepts for all but the last part is 5MB.
@@ -492,24 +466,24 @@ func (s *ClientTests) TestMultiComplete(c *C) {
 	data2 := []byte("<part 2>")
 
 	part1, err := multi.PutPart(1, bytes.NewReader(data1))
-	c.Assert(err, IsNil)
+	c.Assert(err, check.IsNil)
 	part2, err := multi.PutPart(2, bytes.NewReader(data2))
-	c.Assert(err, IsNil)
+	c.Assert(err, check.IsNil)
 
 	// Purposefully reversed. The order requirement must be handled.
 	err = multi.Complete([]s3.Part{part2, part1})
-	c.Assert(err, IsNil)
+	c.Assert(err, check.IsNil)
 
 	data, err := b.Get("multi")
-	c.Assert(err, IsNil)
+	c.Assert(err, check.IsNil)
 
-	c.Assert(len(data), Equals, len(data1)+len(data2))
+	c.Assert(len(data), check.Equals, len(data1)+len(data2))
 	for i := range data1 {
 		if data[i] != data1[i] {
 			c.Fatalf("uploaded object at byte %d: want %d, got %d", data1[i], data[i])
 		}
 	}
-	c.Assert(string(data[len(data1):]), Equals, string(data2))
+	c.Assert(string(data[len(data1):]), check.Equals, string(data2))
 }
 
 type multiList []*s3.Multi
@@ -518,16 +492,16 @@ func (l multiList) Len() int           { return len(l) }
 func (l multiList) Less(i, j int) bool { return l[i].Key < l[j].Key }
 func (l multiList) Swap(i, j int)      { l[i], l[j] = l[j], l[i] }
 
-func (s *ClientTests) TestListMulti(c *C) {
+func (s *ClientTests) TestListMulti(c *check.C) {
 	b := testBucket(s.s3)
 	err := b.PutBucket(s3.Private)
-	c.Assert(err, IsNil)
+	c.Assert(err, check.IsNil)
 
 	// Ensure an empty state before testing its behavior.
 	multis, _, err := b.ListMulti("", "")
 	for _, m := range multis {
 		err := m.Abort()
-		c.Assert(err, IsNil)
+		c.Assert(err, check.IsNil)
 	}
 
 	keys := []string{
@@ -537,8 +511,8 @@ func (s *ClientTests) TestListMulti(c *C) {
 		"multi1",
 	}
 	for _, key := range keys {
-		m, err := b.InitMulti(key, "", s3.Private)
-		c.Assert(err, IsNil)
+		m, err := b.InitMulti(key, "", s3.Private, s3.Options{})
+		c.Assert(err, check.IsNil)
 		defer m.Abort()
 	}
 
@@ -548,68 +522,68 @@ func (s *ClientTests) TestListMulti(c *C) {
 	//s3.SetListMultiMax(2)
 
 	multis, prefixes, err := b.ListMulti("", "")
-	c.Assert(err, IsNil)
+	c.Assert(err, check.IsNil)
 	for attempt := attempts.Start(); attempt.Next() && len(multis) < len(keys); {
 		multis, prefixes, err = b.ListMulti("", "")
-		c.Assert(err, IsNil)
+		c.Assert(err, check.IsNil)
 	}
 	sort.Sort(multiList(multis))
-	c.Assert(prefixes, IsNil)
+	c.Assert(prefixes, check.IsNil)
 	var gotKeys []string
 	for _, m := range multis {
 		gotKeys = append(gotKeys, m.Key)
 	}
-	c.Assert(gotKeys, DeepEquals, keys)
+	c.Assert(gotKeys, check.DeepEquals, keys)
 	for _, m := range multis {
-		c.Assert(m.Bucket, Equals, b)
-		c.Assert(m.UploadId, Matches, ".+")
+		c.Assert(m.Bucket, check.Equals, b)
+		c.Assert(m.UploadId, check.Matches, ".+")
 	}
 
 	multis, prefixes, err = b.ListMulti("", "/")
 	for attempt := attempts.Start(); attempt.Next() && len(prefixes) < 2; {
 		multis, prefixes, err = b.ListMulti("", "")
-		c.Assert(err, IsNil)
+		c.Assert(err, check.IsNil)
 	}
-	c.Assert(err, IsNil)
-	c.Assert(prefixes, DeepEquals, []string{"a/", "b/"})
-	c.Assert(multis, HasLen, 1)
-	c.Assert(multis[0].Bucket, Equals, b)
-	c.Assert(multis[0].Key, Equals, "multi1")
-	c.Assert(multis[0].UploadId, Matches, ".+")
+	c.Assert(err, check.IsNil)
+	c.Assert(prefixes, check.DeepEquals, []string{"a/", "b/"})
+	c.Assert(multis, check.HasLen, 1)
+	c.Assert(multis[0].Bucket, check.Equals, b)
+	c.Assert(multis[0].Key, check.Equals, "multi1")
+	c.Assert(multis[0].UploadId, check.Matches, ".+")
 
 	for attempt := attempts.Start(); attempt.Next() && len(multis) < 2; {
 		multis, prefixes, err = b.ListMulti("", "")
-		c.Assert(err, IsNil)
+		c.Assert(err, check.IsNil)
 	}
 	multis, prefixes, err = b.ListMulti("a/", "/")
-	c.Assert(err, IsNil)
-	c.Assert(prefixes, IsNil)
-	c.Assert(multis, HasLen, 2)
-	c.Assert(multis[0].Bucket, Equals, b)
-	c.Assert(multis[0].Key, Equals, "a/multi2")
-	c.Assert(multis[0].UploadId, Matches, ".+")
-	c.Assert(multis[1].Bucket, Equals, b)
-	c.Assert(multis[1].Key, Equals, "a/multi3")
-	c.Assert(multis[1].UploadId, Matches, ".+")
+	c.Assert(err, check.IsNil)
+	c.Assert(prefixes, check.IsNil)
+	c.Assert(multis, check.HasLen, 2)
+	c.Assert(multis[0].Bucket, check.Equals, b)
+	c.Assert(multis[0].Key, check.Equals, "a/multi2")
+	c.Assert(multis[0].UploadId, check.Matches, ".+")
+	c.Assert(multis[1].Bucket, check.Equals, b)
+	c.Assert(multis[1].Key, check.Equals, "a/multi3")
+	c.Assert(multis[1].UploadId, check.Matches, ".+")
 }
 
-func (s *ClientTests) TestMultiPutAllZeroLength(c *C) {
+func (s *ClientTests) TestMultiPutAllZeroLength(c *check.C) {
 	b := testBucket(s.s3)
 	err := b.PutBucket(s3.Private)
-	c.Assert(err, IsNil)
+	c.Assert(err, check.IsNil)
 
-	multi, err := b.InitMulti("multi", "text/plain", s3.Private)
-	c.Assert(err, IsNil)
+	multi, err := b.InitMulti("multi", "text/plain", s3.Private, s3.Options{})
+	c.Assert(err, check.IsNil)
 	defer multi.Abort()
 
 	// This tests an edge case. Amazon requires at least one
 	// part for multiprat uploads to work, even the part is empty.
 	parts, err := multi.PutAll(strings.NewReader(""), 5*1024*1024)
-	c.Assert(err, IsNil)
-	c.Assert(parts, HasLen, 1)
-	c.Assert(parts[0].Size, Equals, int64(0))
-	c.Assert(parts[0].ETag, Equals, `"d41d8cd98f00b204e9800998ecf8427e"`)
+	c.Assert(err, check.IsNil)
+	c.Assert(parts, check.HasLen, 1)
+	c.Assert(parts[0].Size, check.Equals, int64(0))
+	c.Assert(parts[0].ETag, check.Equals, `"d41d8cd98f00b204e9800998ecf8427e"`)
 
 	err = multi.Complete(parts)
-	c.Assert(err, IsNil)
+	c.Assert(err, check.IsNil)
 }

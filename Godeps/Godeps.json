@@ -13,16 +13,12 @@
 			"Rev": "46bd821940d86fb9777f7f86e9ae428132e110da"
 		},
 		{
-			"ImportPath": "github.com/mitchellh/goamz/aws",
-			"Rev": "9cad7da945e699385c1a3e115aa255211921c9bb"
+			"ImportPath": "github.com/crowdmob/goamz/aws",
+			"Rev": "6f5985534b8280e311c771f0906ea07b8bf34cfb"
 		},
 		{
-			"ImportPath": "github.com/mitchellh/goamz/s3",
-			"Rev": "9cad7da945e699385c1a3e115aa255211921c9bb"
-		},
-		{
-			"ImportPath": "github.com/vaughan0/go-ini",
-			"Rev": "a98ad7ee00ec53921f08832bc06ecf7fd600e6a1"
+			"ImportPath": "github.com/crowdmob/goamz/s3",
+			"Rev": "6f5985534b8280e311c771f0906ea07b8bf34cfb"
 		}
 	]
 }

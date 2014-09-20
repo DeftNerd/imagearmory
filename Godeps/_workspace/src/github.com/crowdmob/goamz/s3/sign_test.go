@@ -1,16 +1,16 @@
 package s3_test
 
 import (
-	"github.com/mitchellh/goamz/aws"
-	"github.com/mitchellh/goamz/s3"
-	. "github.com/motain/gocheck"
+	"github.com/crowdmob/goamz/aws"
+	"github.com/crowdmob/goamz/s3"
+	"gopkg.in/check.v1"
 )
 
 // S3 ReST authentication docs: http://goo.gl/G1LrK
 
-var testAuth = aws.Auth{"0PN5J17HBGZHT7JJ3X82", "uV3F3YluFJax1cknvbcGwgjvx4QpvB+leU8dUj2o", ""}
+var testAuth = aws.Auth{AccessKey: "0PN5J17HBGZHT7JJ3X82", SecretKey: "uV3F3YluFJax1cknvbcGwgjvx4QpvB+leU8dUj2o"}
 
-func (s *S) TestSignExampleObjectGet(c *C) {
+func (s *S) TestSignExampleObjectGet(c *check.C) {
 	method := "GET"
 	path := "/johnsmith/photos/puppy.jpg"
 	headers := map[string][]string{
@@ -19,10 +19,10 @@ func (s *S) TestSignExampleObjectGet(c *C) {
 	}
 	s3.Sign(testAuth, method, path, nil, headers)
 	expected := "AWS 0PN5J17HBGZHT7JJ3X82:xXjDGYUmKxnwqr5KXNPGldn5LbA="
-	c.Assert(headers["Authorization"], DeepEquals, []string{expected})
+	c.Assert(headers["Authorization"], check.DeepEquals, []string{expected})
 }
 
-func (s *S) TestSignExampleObjectPut(c *C) {
+func (s *S) TestSignExampleObjectPut(c *check.C) {
 	method := "PUT"
 	path := "/johnsmith/photos/puppy.jpg"
 	headers := map[string][]string{
@@ -33,10 +33,10 @@ func (s *S) TestSignExampleObjectPut(c *C) {
 	}
 	s3.Sign(testAuth, method, path, nil, headers)
 	expected := "AWS 0PN5J17HBGZHT7JJ3X82:hcicpDDvL9SsO6AkvxqmIWkmOuQ="
-	c.Assert(headers["Authorization"], DeepEquals, []string{expected})
+	c.Assert(headers["Authorization"], check.DeepEquals, []string{expected})
 }
 
-func (s *S) TestSignExampleList(c *C) {
+func (s *S) TestSignExampleList(c *check.C) {
 	method := "GET"
 	path := "/johnsmith/"
 	params := map[string][]string{
@@ -51,10 +51,10 @@ func (s *S) TestSignExampleList(c *C) {
 	}
 	s3.Sign(testAuth, method, path, params, headers)
 	expected := "AWS 0PN5J17HBGZHT7JJ3X82:jsRt/rhG+Vtp88HrYL706QhE4w4="
-	c.Assert(headers["Authorization"], DeepEquals, []string{expected})
+	c.Assert(headers["Authorization"], check.DeepEquals, []string{expected})
 }
 
-func (s *S) TestSignExampleFetch(c *C) {
+func (s *S) TestSignExampleFetch(c *check.C) {
 	method := "GET"
 	path := "/johnsmith/"
 	params := map[string][]string{
@@ -66,10 +66,10 @@ func (s *S) TestSignExampleFetch(c *C) {
 	}
 	s3.Sign(testAuth, method, path, params, headers)
 	expected := "AWS 0PN5J17HBGZHT7JJ3X82:thdUi9VAkzhkniLj96JIrOPGi0g="
-	c.Assert(headers["Authorization"], DeepEquals, []string{expected})
+	c.Assert(headers["Authorization"], check.DeepEquals, []string{expected})
 }
 
-func (s *S) TestSignExampleDelete(c *C) {
+func (s *S) TestSignExampleDelete(c *check.C) {
 	method := "DELETE"
 	path := "/johnsmith/photos/puppy.jpg"
 	params := map[string][]string{}
@@ -81,10 +81,10 @@ func (s *S) TestSignExampleDelete(c *C) {
 	}
 	s3.Sign(testAuth, method, path, params, headers)
 	expected := "AWS 0PN5J17HBGZHT7JJ3X82:k3nL7gH3+PadhTEVn5Ip83xlYzk="
-	c.Assert(headers["Authorization"], DeepEquals, []string{expected})
+	c.Assert(headers["Authorization"], check.DeepEquals, []string{expected})
 }
 
-func (s *S) TestSignExampleUpload(c *C) {
+func (s *S) TestSignExampleUpload(c *check.C) {
 	method := "PUT"
 	path := "/static.johnsmith.net/db-backup.dat.gz"
 	params := map[string][]string{}
@@ -104,10 +104,10 @@ func (s *S) TestSignExampleUpload(c *C) {
 	}
 	s3.Sign(testAuth, method, path, params, headers)
 	expected := "AWS 0PN5J17HBGZHT7JJ3X82:C0FlOtU8Ylb9KDTpZqYkZPX91iI="
-	c.Assert(headers["Authorization"], DeepEquals, []string{expected})
+	c.Assert(headers["Authorization"], check.DeepEquals, []string{expected})
 }
 
-func (s *S) TestSignExampleListAllMyBuckets(c *C) {
+func (s *S) TestSignExampleListAllMyBuckets(c *check.C) {
 	method := "GET"
 	path := "/"
 	headers := map[string][]string{
@@ -116,10 +116,10 @@ func (s *S) TestSignExampleListAllMyBuckets(c *C) {
 	}
 	s3.Sign(testAuth, method, path, nil, headers)
 	expected := "AWS 0PN5J17HBGZHT7JJ3X82:Db+gepJSUbZKwpx1FR0DLtEYoZA="
-	c.Assert(headers["Authorization"], DeepEquals, []string{expected})
+	c.Assert(headers["Authorization"], check.DeepEquals, []string{expected})
 }
 
-func (s *S) TestSignExampleUnicodeKeys(c *C) {
+func (s *S) TestSignExampleUnicodeKeys(c *check.C) {
 	method := "GET"
 	path := "/dictionary/fran%C3%A7ais/pr%c3%a9f%c3%a8re"
 	headers := map[string][]string{
@@ -128,24 +128,21 @@ func (s *S) TestSignExampleUnicodeKeys(c *C) {
 	}
 	s3.Sign(testAuth, method, path, nil, headers)
 	expected := "AWS 0PN5J17HBGZHT7JJ3X82:dxhSBHoI6eVSPcXJqEghlUzZMnY="
-	c.Assert(headers["Authorization"], DeepEquals, []string{expected})
+	c.Assert(headers["Authorization"], check.DeepEquals, []string{expected})
 }
 
-// Not included in AWS documentation
-
-func (s *S) TestSignWithIAMToken(c *C) {
+func (s *S) TestSignExampleCustomSSE(c *check.C) {
 	method := "GET"
-	path := "/"
+	path := "/secret/config"
+	params := map[string][]string{}
 	headers := map[string][]string{
-		"Host": {"s3.amazonaws.com"},
-		"Date": {"Wed, 28 Mar 2007 01:29:59 +0000"},
+		"Host": {"secret.johnsmith.net:8080"},
+		"Date": {"Tue, 27 Mar 2007 21:06:08 +0000"},
+		"x-amz-server-side-encryption-customer-key":       {"MWJhakVna1dQT1B0SDFMeGtVVnRQRTFGaU1ldFJrU0I="},
+		"x-amz-server-side-encryption-customer-key-MD5":   {"glIqxpqQ4a9aoK/iLttKzQ=="},
+		"x-amz-server-side-encryption-customer-algorithm": {"AES256"},
 	}
-
-	authWithToken := testAuth
-	authWithToken.Token = "totallysecret"
-
-	s3.Sign(authWithToken, method, path, nil, headers)
-	expected := "AWS 0PN5J17HBGZHT7JJ3X82:SJ0yQO7NpHyXJ7zkxY+/fGQ6aUw="
-	c.Assert(headers["Authorization"], DeepEquals, []string{expected})
-	c.Assert(headers["x-amz-security-token"], DeepEquals, []string{authWithToken.Token})
+	s3.Sign(testAuth, method, path, params, headers)
+	expected := "AWS 0PN5J17HBGZHT7JJ3X82:Xq6PWmIo0aOWq+LDjCEiCGgbmHE="
+	c.Assert(headers["Authorization"], check.DeepEquals, []string{expected})
 }
