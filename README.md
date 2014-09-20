@@ -10,7 +10,9 @@ Client side encrypting image host. Server is in Go, and frontend uses crypto.js
     $ go get github.com/tools/godep
     $ godep restore
 
-Compile the Go program by going into the server directory and typing "go build". It will generate an appliation called "server"
+Install the binary using `go install` to your `$GOPATH/bin` and run the server using (sample)
+
+    AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY="secret" $GOPATH/bin/imagearmory --storage s3 --bucket targetbucket
 
 Use Ubuntu Upstart to set it to run on system boot. 
 
