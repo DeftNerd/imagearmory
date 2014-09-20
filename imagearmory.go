@@ -1,15 +1,16 @@
 package main
 
 import (
+	"encoding/base64"
 	"fmt"
 	"github.com/DeftNerd/imagearmory/server"
 	"github.com/codegangsta/cli"
 	"github.com/codegangsta/negroni"
+	"github.com/nu7hatch/gouuid"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
 	"strings"
 )
 
@@ -26,12 +27,18 @@ const UMASK = 0664
 type webFunc func(http.ResponseWriter, *http.Request)
 
 func GetId() string {
-	out, err := exec.Command("uuidgen").Output()
+	u4, err := uuid.NewV4()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Unable to generate UUID: %v\n", err)
 	}
 
-	return strings.TrimSpace(string(out))
+	var byteData []byte = make([]byte, 16)
+	copy(byteData, u4[:])
+
+	// Base64 encode, remove ==s and replace slashes
+	res := strings.Trim(base64.StdEncoding.EncodeToString(byteData), "=")
+
+	return strings.Replace(res, "/", "x", -1)
 }
 
 func FileExists(path string) bool {
