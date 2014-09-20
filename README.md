@@ -3,9 +3,15 @@ imagearmory
 
 Client side encrypting image host. Server is in Go, and frontend uses crypto.js
 
-**Installation**
+### Install
 
-COmpile the Go program by going into the server directory and typing "go build". It will generate an appliation called "server"
+`imagearmory` uses `godep` to manage dependencies. You need to have it installed and restore dependencies using
+
+    $ go get github.com/tools/godep
+    $ godep restore
+
+
+Compile the Go program by going into the server directory and typing "go build". It will generate an appliation called "server"
 
 Use Ubuntu Upstart to set it to run on system boot. 
 
