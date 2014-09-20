@@ -24,8 +24,18 @@ func (adapter *S3Adapter) Init(c *cli.Context) {
         log.Fatal(err)
     }
     
-    // TODO hardcoded region
-    adapter.S3 = s3.New(auth, aws.EUWest)
+    // retrieve bucket region
+    client := s3.New(auth, aws.USEast)
+    a_bucket := client.Bucket(c.String("bucket"))
+    location, _ := a_bucket.Location()
+    
+    region, ok := aws.Regions[location]
+    if ok != true {
+        log.Fatalf("Unable to locate region for bucket '%s' - location: %s\n", c.String("bucket"), location)
+    }
+    
+    // establish connection
+    adapter.S3 = s3.New(auth, region)
     
     adapter.Bucket = adapter.S3.Bucket(c.String("bucket"))
 }
@@ -37,7 +47,7 @@ func (adapter *S3Adapter) Get(objectId string) (buffer []byte, err error) {
 }
 
 func (adapter *S3Adapter) Put(objectId string, buffer []byte) (err error) {
-    err = adapter.Bucket.Put(objectId, buffer, "text/plain", s3.BucketOwnerFull)
+    err = adapter.Bucket.Put(objectId, buffer, "text/plain", s3.BucketOwnerFull, s3.Options{})
     
     return
 }
