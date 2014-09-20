@@ -10,12 +10,32 @@ Client side encrypting image host. Server is in Go, and frontend uses crypto.js
     $ go get github.com/tools/godep
     $ godep restore
 
+Install the binary using `go install` to your `$GOPATH/bin` and run the server using (sample)
 
-Compile the Go program by going into the server directory and typing "go build". It will generate an appliation called "server"
+    AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY="secret" $GOPATH/bin/imagearmory --storage s3 --bucket targetbucket
 
 Use Ubuntu Upstart to set it to run on system boot. 
 
 By default, the server will run on port 8080. I suggest using Nginx as a proxy so you can make a virtual host for the service respond on port 80 and share the server with other applications. 
+
+### Setup (Amazon S3)
+
+The target Amazon S3 bucket must be configured with the correct CORS Configuration. Sample policy looks like
+
+    <CORSConfiguration>
+        <CORSRule>
+            <AllowedOrigin>*</AllowedOrigin>
+            <AllowedMethod>GET</AllowedMethod>
+            <MaxAgeSeconds>3000</MaxAgeSeconds>
+            <AllowedHeader>Authorization</AllowedHeader>
+        </CORSRule>
+        <CORSRule>
+           <AllowedOrigin>*</AllowedOrigin>
+           <AllowedMethod>GET</AllowedMethod>
+        </CORSRule>
+    </CORSConfiguration>
+
+The second rule is the important in this case allowing GET requests from all origins. The wildcard '*' refers to all origins. Alternative is to use the deployment origin to restrict the XHR calls.
 
 **Coming Soon**
 
@@ -26,8 +46,6 @@ In order to do that, I need to quit using auto-incrementing ID numbers for the f
 
 TODOs
 =====
-
-- Prevent double-round trip for the files (render files directly on client from S3)
 
 - Re-introduce local storage options (via adapter/cli switch)
 

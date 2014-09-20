@@ -118,7 +118,7 @@ function initPage(){
     var url=window.location+'';
     if(url.indexOf("#") != -1){
         var d = url.split("#")[1].split(":");
-        if(d.length == 2 && d[0].length ==36){
+        if(d.length == 2){
             getBin(d[0],d[1]);
         }
     }else{
